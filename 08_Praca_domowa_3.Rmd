@@ -1,0 +1,69 @@
+---
+title: "Praca domowa 3"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(plotly)
+library(DT)
+```
+# Praca domowa 3
+1. [Praca domowa](#Praca domowa)
+2. [Analiza zależności](#Analiza zależności)
+3. [Wykres zależności](#Wykres zależności)
+
+# Praca domowa <a name="Praca domowa"></a>
+
+Korzystając ze zbioru __USJudgeRatings__ przygotuj dokument taki jak ten. Więcej informacji o zbiorze uzyskasz wpisując ?USJudgeRatings.
+
+# Analiza zależności <a name="Analiza zależności"></a>
+Przeanalizujemy zależność między <b>liczbą widzeń sędziów z adwokatami</b>, a oceną adwokatów <b>zasługiwania tych sędziów na pozostanie na stanowisku</b>.
+
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+
+library(dplyr)
+USJudgeRatings2 <-USJudgeRatings%>%add_rownames()
+USJudgeRatings2<-USJudgeRatings2%>%as_tibble() %>% mutate(count_floor_label = floor(CONT))
+USJudgeRatings2<-USJudgeRatings2[c(1,2,14,13)]
+
+USJudgeRatings3 <-select(USJudgeRatings2,"Sędzia"=rowname,"Średnia liczba kontaktoów z adwokatami"=CONT, "Podłoga z liczby kontaków" = count_floor_label,"Zasługiwanie na pozostanie na stanowisku"=RTEN )
+
+datatable(USJudgeRatings3)
+```
+
+
+
+## Wykres zależności <a name="Wykres zależności"></a>
+Poniżej znajduje się wykres zależnośći pomiędzy średnią liczbą widzeń sędziów z adwokatami (zaokrąglaną w dół za pomocą funckji floor()) a oceną przez tych adwokatów, czy sędzia zasługuje na pozostanie na stanowisku.
+Warto zwrócić uwagę, że wykres jest zielony, są opisy osi oraz po najechaniu na słupek pojawia się tooltip, który w górnej linii <b>nie</b> zawiera domyślnych nawiasów z parametrami zaznaczonego słupka, np. (1, 2)
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
+USJudgeRatings2 %>%
+  mutate(visit_label = c(USJudgeRatings2$count_floor_label) ) %>%
+  group_by(visit_label) %>%
+  summarize(mean_worth = mean(RTEN),count=n()) %>%
+  plot_ly() %>%
+  add_bars(
+    x = ~visit_label,
+    y = ~mean_worth,
+    color = I("springgreen4"),
+    text = ~paste0(
+      "Liczba widzen: ", visit_label,
+      "\nSrednie zaslugiwanie: ", mean_worth,
+      "\nIlosc spotkan: ",count
+    )
+                                      
+  ) %>%
+  layout(
+    xaxis = list(title = 'Podłoga z liczby kontaków'),
+    yaxis = list(title = 'Zasługiwanie na pozostanie na stanowisku')
+  )
+  
+
+```
+
+
